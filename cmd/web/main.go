@@ -84,6 +84,8 @@ func main() {
   mux.Handle("/static/", http.StripPrefix("/static", fileServer))
   mux.HandleFunc("/login/", loginHandler)
   mux.HandleFunc("/register/", registerHandler)
+  mux.HandleFunc("/password-reset/", resetPasswordHandler)
+  mux.HandleFunc("/username-forget/", usernameForgetHandler)
   log.Printf("Listening on port 8080..\n")
   log.Fatal(http.ListenAndServe(":8080", mux))
 }

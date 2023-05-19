@@ -82,3 +82,40 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
   }
 }
 
+func resetPasswordHandler(w http.ResponseWriter, r *http.Request) {
+  if r.URL.Path != "/password-reset/" {
+    http.Redirect(w, r, "/password-reset/", http.StatusFound)
+		return
+  }
+  switch r.Method {
+    case "GET":
+      http.ServeFile(w, r, "./ui/html/password-reset.html")
+    case "POST":
+      if err := r.ParseForm(); err != nil {
+        fmt.Fprintf(w, "resetPasswordHandler: %v", err)
+        return
+      }
+      // TODO: finish writing this method
+    default:
+      fmt.Fprintf(w, "Only GET and POST methods are supported.")
+  }
+}
+
+func usernameForgetHandler(w http.ResponseWriter, r *http.Request) {
+  if r.URL.Path != "/username-forget/" {
+    http.Redirect(w, r, "/username-forget/", http.StatusFound)
+		return
+  }
+  switch r.Method {
+    case "GET":
+      http.ServeFile(w, r, "./ui/html/username-forget.html")
+    case "POST":
+      if err := r.ParseForm(); err != nil {
+        fmt.Fprintf(w, "usernameForgetHandler: %v", err)
+        return
+      }
+      // TODO: finish writing this method
+    default:
+      fmt.Fprintf(w, "Only GET and POST methods are supported.")
+  }
+}
