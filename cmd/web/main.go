@@ -82,7 +82,8 @@ func main() {
   mux := http.NewServeMux()
   fileServer := http.FileServer(http.Dir("./ui/static/"))
   mux.Handle("/static/", http.StripPrefix("/static", fileServer))
-  mux.HandleFunc("/index/", indexHandler)
+  mux.HandleFunc("/login/", loginHandler)
+  mux.HandleFunc("/register/", registerHandler)
   log.Printf("Listening on port 8080..\n")
   log.Fatal(http.ListenAndServe(":8080", mux))
 }

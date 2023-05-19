@@ -2,25 +2,20 @@
 <html>
   <head>
     <meta charset="UTF-8">
-    <link rel="stylesheet" href="/static/index.css"/>
+    <link rel="stylesheet" href="/static/login.css"/>
     <title>Log In</title>
-    <script defer src="/static/validate.js"></script>
   </head>
   <body>
     <div class="center">
       <h1>Login</h1>
     <div id="error"></div>
-    <form action="/index/" method="POST">
-      <div class="input-field">
-        <input id="email" name="email" type="email" required>
-        <span></span>
-        <label for="email">Email</label>
-      </div>
+    <form action="/index/" method="POST" id="login-form">
       <div class="input-field">
         <input id="username" name="username" type="text" required>
         <span></span>
         <label for="username">Username</label>
       </div>
+      <div class="forgot-username">Forgot Username?</div>
       <div class="input-field">
         <input id="password" name="password" type="password" required>
         <span></span>
@@ -29,7 +24,7 @@
       <div class="forgot-pass">Forgot Password?</div>
       <button type="submit">Submit</button>
       <div class="sign-up">
-        Not a member? <a href="#">Sign-up</a>
+        Not a member? <a href="/register/">Sign-up</a>
       </div>
     </form>
     <footer><i>Powered by <a href="https://golang.org/">Go</a></i><footer>
