@@ -121,3 +121,4 @@ func usernameForgetHandler(w http.ResponseWriter, r *http.Request) {
       fmt.Fprintf(w, "Only GET and POST methods are supported.")
   }
 }
+

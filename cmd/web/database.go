@@ -49,7 +49,23 @@ func queryUsersByEmail(email string) ([]User, error) {
   return users, nil
 }
 
+func userExists(usr User) bool {
+  row := db.QueryRow(
+    "SELECT id FROM users WHERE email = ? AND username = ? LIMIT 1",
+    usr.Email,
+    usr.Username,
+  )
+  var id int64
+  if err := row.Scan(&id); err != nil {
+    return false
+  }
+  return true
+}
+
 func insertUser(usr User) (int64, error) {
+    if userExists(usr) {
+      return 0, fmt.Errorf("insertUser: user already exists!")
+    }
     result, err := db.Exec("INSERT INTO users (email, username, password_hash) VALUES (?, ?, ?)",
       usr.Email,
       usr.Username,
