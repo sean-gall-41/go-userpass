@@ -56,14 +56,13 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
       }
       user, err := queryUsersByUsername(r.FormValue("username"))
       if err != nil {
-        //TODO: handle by reporting error to user: could not find username
-        fmt.Fprintf(w, "indexHandler: %v", err)
+        fmt.Fprintf(w, "indexHandler: Could not find username!")
         return
       }
       err = bcrypt.CompareHashAndPassword(user.PassHash, []byte(r.FormValue("password")))
       if err != nil {
         //TODO: handle by reporting error to user: incorrect password for user
-        fmt.Fprintf(w, "indexHandler: %v", err)
+        fmt.Fprintf(w, "indexHandler: Given password for user '%s' is incorrect!", user.Username)
         return
       }
       http.Redirect(w, r, "/login-success/", http.StatusFound)
