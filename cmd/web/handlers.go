@@ -30,14 +30,11 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
         Username: r.FormValue("username"),
         PassHash: hash,
       }
-      //fmt.Printf("Inserting user into db 'users'...\n")
-      //id, err := insertUser(user)
-      //if err != nil {
-      //  fmt.Fprintf(w, "indexHandler: %v", err)
-      //  return
-      //}
-      //fmt.Printf("Successfully inserted user into db!\n")
-      //user.ID = id
+      _, err = insertUser(user)
+      if err != nil {
+        fmt.Fprintf(w, "indexHandler: %v", err)
+        return
+      }
       fmt.Fprintf(w, "User: %v\n", user)
     default:
       fmt.Fprintf(w, "Only GET and POST methods are supported.")
@@ -57,29 +54,34 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
         fmt.Fprintf(w, "indexHandler: %v", err)
         return
       }
-      hash, err := bcrypt.GenerateFromPassword([]byte(r.FormValue("password")), bcrypt.MinCost)
+      user, err := queryUsersByUsername(r.FormValue("username"))
       if err != nil {
+        //TODO: handle by reporting error to user: could not find username
         fmt.Fprintf(w, "indexHandler: %v", err)
         return
       }
-      user := User {
-        ID: 0,
-        Email: r.FormValue("email"),
-        Username: r.FormValue("username"),
-        PassHash: hash,
+      err = bcrypt.CompareHashAndPassword(user.PassHash, []byte(r.FormValue("password")))
+      if err != nil {
+        //TODO: handle by reporting error to user: incorrect password for user
+        fmt.Fprintf(w, "indexHandler: %v", err)
+        return
       }
-      //fmt.Printf("Inserting user into db 'users'...\n")
-      //id, err := insertUser(user)
-      //if err != nil {
-      //  fmt.Fprintf(w, "indexHandler: %v", err)
-      //  return
-      //}
-      //fmt.Printf("Successfully inserted user into db!\n")
-      //user.ID = id
-      fmt.Fprintf(w, "User: %v\n", user)
+      http.Redirect(w, r, "/login-success/", http.StatusFound)
     default:
       fmt.Fprintf(w, "Only GET and POST methods are supported.")
   }
+}
+
+func loginSuccessHandler(w http.ResponseWriter, r *http.Request) {
+	if r.URL.Path != "/login-success/" {
+    http.Redirect(w, r, "/login-success/", http.StatusFound)
+		return
+	}
+  if r.Method == "GET" {
+      http.ServeFile(w, r, "./ui/html/login-success.html")
+      return
+  }
+  fmt.Fprintf(w, "Only GET method is supported for handler loginSuccessHandler.")
 }
 
 func resetPasswordHandler(w http.ResponseWriter, r *http.Request) {
