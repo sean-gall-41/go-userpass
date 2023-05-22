@@ -26,27 +26,16 @@ func queryUsersByUsername(username string) (*User, error) {
   return &user, nil
 }
 
-func queryUsersByEmail(email string) ([]User, error) {
-  var users []User
-  rows, err := db.Query(
-    "SELECT * FROM users WHERE email = ?",
+func queryUsersByEmail(email string) (*User, error) {
+  var usr User
+  row := db.QueryRow(
+    "SELECT * FROM users WHERE email = ? LIMIT 1",
     email,
   )
-  if err != nil {
+  if err := row.Scan(&usr.ID, &usr.Email, &usr.Username, &usr.PassHash); err != nil {
     return nil, fmt.Errorf("queryUserByEmail %q: %v", email, err)
   }
-  defer rows.Close()
-  for rows.Next() {
-    var usr User
-    if err := rows.Scan(&usr.ID, &usr.Email, &usr.Username, &usr.PassHash); err != nil {
-      return nil, fmt.Errorf("queryUserByEmail %q: %v", email, err)
-    }
-    users = append(users, usr)
-  }
-  if err := rows.Err(); err != nil {
-    return nil, fmt.Errorf("queryUserByEmail %q: %v", email, err)
-  }
-  return users, nil
+  return &usr, nil
 }
 
 func userExists(usr User) bool {

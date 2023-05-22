@@ -1,9 +1,12 @@
 package main
 
 import(
+  "os"
   "fmt"
   "golang.org/x/crypto/bcrypt"
+  "crypto/tls"
   "net/http"
+  "gopkg.in/gomail.v2"
 )
 
 func registerHandler(w http.ResponseWriter, r *http.Request) {
@@ -102,6 +105,15 @@ func resetPasswordHandler(w http.ResponseWriter, r *http.Request) {
   }
 }
 
+type Email struct {
+  From string
+  To []string
+  Cc []string
+  Subject string
+  Body string
+  Attachments []string
+}
+
 func usernameForgetHandler(w http.ResponseWriter, r *http.Request) {
   if r.URL.Path != "/username-forget/" {
     http.Redirect(w, r, "/username-forget/", http.StatusFound)
@@ -115,9 +127,48 @@ func usernameForgetHandler(w http.ResponseWriter, r *http.Request) {
         fmt.Fprintf(w, "usernameForgetHandler: %v", err)
         return
       }
-      // TODO: finish writing this method
+      user, err := queryUsersByEmail(r.FormValue("email"))
+      if err != nil {
+        fmt.Fprintf(w, "usernameForgetHandler: %v", err)
+        return
+      }
+      email := Email {
+        From: os.Getenv("EMAILUSER"),
+        To: []string{user.Email},
+        Subject: "Forgot username",
+        Body: fmt.Sprintf(`<p>Hello Silly Little Human,</p>
+                           <p>It would appear as though you have forgotten your username.
+                              Allow me to help you, foolish child.</p>
+                           <p>Your username is: <b>%s</b></p>`, user.Username),
+      }
+      if err := sendEmail(&email); err != nil {
+        fmt.Fprintf(w, "usernameForgetHandler: %v", err)
+        return
+      }
     default:
       fmt.Fprintf(w, "Only GET and POST methods are supported.")
   }
+}
+
+func sendEmail(email *Email) error {
+  m := gomail.NewMessage()
+  m.SetHeader("From", email.From)
+  m.SetHeader("To", email.To...)
+  if len(email.Cc) != 0 {
+    m.SetHeader("Cc", email.Cc...)
+  }
+  m.SetHeader("Subject", email.Subject)
+  m.SetBody("text/html", email.Body)
+  if len(email.Attachments) != 0 {
+    for _, file := range email.Attachments {
+      m.Attach(file) // what if this fails?
+    }
+  }
+  d := gomail.NewDialer("smtp.gmail.com", 587, os.Getenv("EMAILUSER"), os.Getenv("EMAILPASS"))
+  d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
+  if err := d.DialAndSend(m); err != nil {
+    return fmt.Errorf("sendEmail: %v", err)
+  }
+  return nil
 }
 
