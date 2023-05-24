@@ -51,6 +51,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
       }
       user, err := internal.QueryUsersByUsername(r.FormValue("username"))
       if err != nil {
+        //TODO: handle by reporting error to user: unknown user
         fmt.Fprintf(w, "indexHandler: Could not find username!")
         return
       }

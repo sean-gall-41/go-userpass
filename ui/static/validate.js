@@ -14,4 +14,5 @@ form.addEventListener('submit', (e) => {
     e.preventDefault();
     error.innerText = messages.join(', ');
   }
+  // TODO: create AJAX request, handle response Promise and update UI
 })
