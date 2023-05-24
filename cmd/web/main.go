@@ -1,35 +1,17 @@
 package main
 
 import(
-  "net/http"
-  "database/sql"
   "os"
   "log"
-  "fmt"
-  "github.com/go-sql-driver/mysql"
+  "net/http"
+  "github.com/sean-gall-41/go-userpass/internal"
 )
 
 func main() {
-  dbName := "go-userpass-users"
-  fmt.Printf("Attempting to connect to database %s\n", dbName)
-  cfg := mysql.Config {
-    User: os.Getenv("DBUSER"),
-    Passwd: os.Getenv("DBPASS"),
-    Net: "unix",
-    Addr: "/var/run/mysqld/mysqld.sock",
-    DBName: dbName,
-    AllowNativePasswords: true,
-  }
-  var err error
-  db, err = sql.Open("mysql", cfg.FormatDSN())
-  if err != nil {
+  if _, err := internal.StartMySQL(); err != nil {
     log.Fatal(err)
+    os.Exit(-1)
   }
-  pingErr := db.Ping()
-  if pingErr != nil {
-    log.Fatal(pingErr)
-  }
-  fmt.Printf("Connection Succesful.\n")
 
   mux := http.NewServeMux()
   fileServer := http.FileServer(http.Dir("./ui/static/"))

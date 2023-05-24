@@ -3,17 +3,16 @@ package main
 import(
   "os"
   "fmt"
+  "strconv"
   "golang.org/x/crypto/bcrypt"
   "crypto/tls"
   "net/http"
   "gopkg.in/gomail.v2"
+  "github.com/joho/godotenv"
+  "github.com/sean-gall-41/go-userpass/internal"
 )
 
 func registerHandler(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/register/" {
-    http.Redirect(w, r, "/register/", http.StatusFound)
-		return
-	}
   switch r.Method {
     case "GET":
       http.ServeFile(w, r, "./ui/html/register.html")
@@ -27,13 +26,13 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
         fmt.Fprintf(w, "registerHandler: %v", err)
         return
       }
-      user := User {
+      user := internal.User {
         ID: 0,
         Email: r.FormValue("email"),
         Username: r.FormValue("username"),
         PassHash: hash,
       }
-      _, err = insertUser(user)
+      _, err = internal.InsertUser(user)
       if err != nil {
         fmt.Fprintf(w, "indexHandler: %v", err)
         return
@@ -45,10 +44,6 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/login/" {
-    http.Redirect(w, r, "/login/", http.StatusFound)
-		return
-	}
   switch r.Method {
     case "GET":
       http.ServeFile(w, r, "./ui/html/login.html")
@@ -57,7 +52,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
         fmt.Fprintf(w, "indexHandler: %v", err)
         return
       }
-      user, err := queryUsersByUsername(r.FormValue("username"))
+      user, err := internal.QueryUsersByUsername(r.FormValue("username"))
       if err != nil {
         fmt.Fprintf(w, "indexHandler: Could not find username!")
         return
@@ -75,10 +70,6 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func loginSuccessHandler(w http.ResponseWriter, r *http.Request) {
-	if r.URL.Path != "/login-success/" {
-    http.Redirect(w, r, "/login-success/", http.StatusFound)
-		return
-	}
   if r.Method == "GET" {
       http.ServeFile(w, r, "./ui/html/login-success.html")
       return
@@ -87,10 +78,6 @@ func loginSuccessHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func resetPasswordHandler(w http.ResponseWriter, r *http.Request) {
-  if r.URL.Path != "/password-reset/" {
-    http.Redirect(w, r, "/password-reset/", http.StatusFound)
-		return
-  }
   switch r.Method {
     case "GET":
       http.ServeFile(w, r, "./ui/html/password-reset.html")
@@ -115,10 +102,6 @@ type Email struct {
 }
 
 func usernameForgetHandler(w http.ResponseWriter, r *http.Request) {
-  if r.URL.Path != "/username-forget/" {
-    http.Redirect(w, r, "/username-forget/", http.StatusFound)
-		return
-  }
   switch r.Method {
     case "GET":
       http.ServeFile(w, r, "./ui/html/username-forget.html")
@@ -127,13 +110,17 @@ func usernameForgetHandler(w http.ResponseWriter, r *http.Request) {
         fmt.Fprintf(w, "usernameForgetHandler: %v", err)
         return
       }
-      user, err := queryUsersByEmail(r.FormValue("email"))
+      user, err := internal.QueryUsersByEmail(r.FormValue("email"))
       if err != nil {
         fmt.Fprintf(w, "usernameForgetHandler: %v", err)
         return
       }
+      if err = godotenv.Load(); err != nil {
+        fmt.Fprintf(w, "usernameForgetHandler: %v", err)
+        return
+      }
       email := Email {
-        From: os.Getenv("EMAILUSER"),
+        From: os.Getenv("EMAIL_FROM"),
         To: []string{user.Email},
         Subject: "Forgot username",
         Body: fmt.Sprintf(`<p>Hello Silly Little Human,</p>
@@ -164,7 +151,16 @@ func sendEmail(email *Email) error {
       m.Attach(file) // what if this fails?
     }
   }
-  d := gomail.NewDialer("smtp.gmail.com", 587, os.Getenv("EMAILUSER"), os.Getenv("EMAILPASS"))
+  port, err := strconv.Atoi(os.Getenv("SMTP_PORT"));
+  if err != nil {
+    return fmt.Errorf("sendEmail: %v", err)
+  }
+  d := gomail.NewDialer(
+    os.Getenv("SMTP_HOST"),
+    port,
+    os.Getenv("SMTP_USER"),
+    os.Getenv("SMTP_PASS"),
+  )
   d.TLSConfig = &tls.Config{InsecureSkipVerify: true}
   if err := d.DialAndSend(m); err != nil {
     return fmt.Errorf("sendEmail: %v", err)

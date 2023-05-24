@@ -1,8 +1,12 @@
-package main
+package internal
 
 import(
+  "os"
+  "log"
   "fmt"
   "database/sql"
+  "github.com/joho/godotenv"
+  "github.com/go-sql-driver/mysql"
 )
 
 var db *sql.DB
@@ -14,7 +18,32 @@ type User struct {
   PassHash []byte
 }
 
-func queryUsersByUsername(username string) (*User, error) {
+func StartMySQL() (*sql.DB, error) {
+  if err := godotenv.Load(); err != nil {
+    return nil, err
+  }
+  log.Print("Connecting to database...\n")
+  cfg := mysql.Config {
+    User: os.Getenv("DB_USER"),
+    Passwd: os.Getenv("DB_PASS"),
+    Net: os.Getenv("DB_NET"),
+    Addr: os.Getenv("DB_ADDR"),
+    DBName: os.Getenv("DB_NAME"),
+    AllowNativePasswords: true,
+  }
+  var err error
+  db, err := sql.Open("mysql", cfg.FormatDSN())
+  if err != nil {
+    return nil, err
+  }
+  if err := db.Ping(); err != nil {
+    return nil, err
+  }
+  log.Print("Connection Succesful.\n")
+  return db, nil
+}
+
+func QueryUsersByUsername(username string) (*User, error) {
   var user User
   row := db.QueryRow(
     "SELECT * FROM users WHERE username = ? LIMIT 1",
@@ -26,7 +55,7 @@ func queryUsersByUsername(username string) (*User, error) {
   return &user, nil
 }
 
-func queryUsersByEmail(email string) (*User, error) {
+func QueryUsersByEmail(email string) (*User, error) {
   var usr User
   row := db.QueryRow(
     "SELECT * FROM users WHERE email = ? LIMIT 1",
@@ -38,7 +67,7 @@ func queryUsersByEmail(email string) (*User, error) {
   return &usr, nil
 }
 
-func userExists(usr User) bool {
+func UserExists(usr User) bool {
   row := db.QueryRow(
     "SELECT id FROM users WHERE email = ? AND username = ? LIMIT 1",
     usr.Email,
@@ -51,8 +80,8 @@ func userExists(usr User) bool {
   return true
 }
 
-func insertUser(usr User) (int64, error) {
-    if userExists(usr) {
+func InsertUser(usr User) (int64, error) {
+    if UserExists(usr) {
       return 0, fmt.Errorf("insertUser: user already exists!")
     }
     result, err := db.Exec("INSERT INTO users (email, username, password_hash) VALUES (?, ?, ?)",
