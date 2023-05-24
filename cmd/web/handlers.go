@@ -15,7 +15,7 @@ import(
 func registerHandler(w http.ResponseWriter, r *http.Request) {
   switch r.Method {
     case "GET":
-      http.ServeFile(w, r, "./ui/html/register.html")
+      internal.RenderTemplate(w, r, "register.tmpl")
     case "POST":
       if err := r.ParseForm(); err != nil {
         fmt.Fprintf(w, "registerHandler: %v", err)
@@ -46,7 +46,7 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 func loginHandler(w http.ResponseWriter, r *http.Request) {
   switch r.Method {
     case "GET":
-      http.ServeFile(w, r, "./ui/html/login.html")
+      internal.RenderTemplate(w, r, "login.tmpl")
     case "POST":
       if err := r.ParseForm(); err != nil {
         fmt.Fprintf(w, "indexHandler: %v", err)
@@ -71,7 +71,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 
 func loginSuccessHandler(w http.ResponseWriter, r *http.Request) {
   if r.Method == "GET" {
-      http.ServeFile(w, r, "./ui/html/login-success.html")
+      internal.RenderTemplate(w, r, "login-success.tmpl")
       return
   }
   fmt.Fprintf(w, "Only GET method is supported for handler loginSuccessHandler.")
@@ -80,7 +80,7 @@ func loginSuccessHandler(w http.ResponseWriter, r *http.Request) {
 func resetPasswordHandler(w http.ResponseWriter, r *http.Request) {
   switch r.Method {
     case "GET":
-      http.ServeFile(w, r, "./ui/html/password-reset.html")
+      internal.RenderTemplate(w, r, "password-reset.tmpl")
     case "POST":
       if err := r.ParseForm(); err != nil {
         fmt.Fprintf(w, "resetPasswordHandler: %v", err)
@@ -104,7 +104,8 @@ type Email struct {
 func usernameForgetHandler(w http.ResponseWriter, r *http.Request) {
   switch r.Method {
     case "GET":
-      http.ServeFile(w, r, "./ui/html/username-forget.html")
+      internal.RenderTemplate(w, r, "username-forget.tmpl")
+      //http.ServeFile(w, r, "./ui/html/username-forget.html")
     case "POST":
       if err := r.ParseForm(); err != nil {
         fmt.Fprintf(w, "usernameForgetHandler: %v", err)
