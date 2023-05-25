@@ -82,7 +82,7 @@ func UserExists(usr User) bool {
 
 func InsertUser(usr User) (int64, error) {
     if UserExists(usr) {
-      return 0, fmt.Errorf("insertUser: user already exists!")
+      return 0, fmt.Errorf("User already exists!")
     }
     result, err := db.Exec("INSERT INTO users (email, username, password_hash) VALUES (?, ?, ?)",
       usr.Email,

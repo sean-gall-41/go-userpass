@@ -10,37 +10,6 @@ import(
   "github.com/sean-gall-41/go-userpass/internal"
 )
 
-func registerHandler(w http.ResponseWriter, r *http.Request) {
-  switch r.Method {
-    case "GET":
-      internal.RenderTemplate(w, r, "register.tmpl")
-    case "POST":
-      if err := r.ParseForm(); err != nil {
-        fmt.Fprintf(w, "registerHandler: %v", err)
-        return
-      }
-      hash, err := bcrypt.GenerateFromPassword([]byte(r.FormValue("password")), bcrypt.MinCost)
-      if err != nil {
-        fmt.Fprintf(w, "registerHandler: %v", err)
-        return
-      }
-      user := internal.User {
-        ID: 0,
-        Email: r.FormValue("email"),
-        Username: r.FormValue("username"),
-        PassHash: hash,
-      }
-      _, err = internal.InsertUser(user)
-      if err != nil {
-        fmt.Fprintf(w, "indexHandler: %v", err)
-        return
-      }
-      fmt.Fprintf(w, "User: %v\n", user)
-    default:
-      fmt.Fprintf(w, "Only GET and POST methods are supported.")
-  }
-}
-
 type serverResponse struct {
   Success bool `json:"success"`
   Message string `json:"message"`
@@ -50,6 +19,51 @@ func respond(w http.ResponseWriter, r *http.Request, response *serverResponse) {
   w.Header().Set("Content-Type", "application/json")
   w.WriteHeader(http.StatusCreated)
   json.NewEncoder(w).Encode(response)
+}
+
+func registerHandler(w http.ResponseWriter, r *http.Request) {
+  switch r.Method {
+    case "GET":
+      internal.RenderTemplate(w, r, "register.tmpl")
+    case "POST":
+      registerRequest := struct {
+        Email string `json:"email"`
+        Username string `json:"username"`
+        Password string `json:"password"`
+      }{}
+      err := json.NewDecoder(r.Body).Decode(&registerRequest)
+      if err != nil {
+        panic(err)
+      }
+      hash, err := bcrypt.GenerateFromPassword([]byte(registerRequest.Password), bcrypt.MinCost)
+      if err != nil {
+        fmt.Fprintf(w, "registerHandler: %v", err)
+        return
+      }
+      user := internal.User {
+        ID: 0,
+        Email: registerRequest.Email,
+        Username: registerRequest.Username,
+        PassHash: hash,
+      }
+      _, err = internal.InsertUser(user)
+      var response serverResponse
+      if err != nil {
+        response = serverResponse {
+          Success: false,
+          Message: err.Error(),
+        }
+        respond(w, r, &response)
+        return
+      }
+      response = serverResponse {
+        Success: true,
+        Message: "",
+      }
+      respond(w, r, &response)
+    default:
+      fmt.Fprintf(w, "Only GET and POST methods are supported.")
+  }
 }
 
 func loginHandler(w http.ResponseWriter, r *http.Request) {

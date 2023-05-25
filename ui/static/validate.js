@@ -1,40 +1,64 @@
-const form = document.getElementById('login-form');
+const loginForm = document.getElementById('login-form');
+const registerForm = document.getElementById('register-form');
+const usernameForgetForm = document.getElementById('username-forget-form');
+const passwordResetForm = document.getElementById('password-reset-form');
 const error = document.getElementById('error');
 
-form.addEventListener('submit', (e) => {
-  e.preventDefault();
-
-  const username = document.getElementById('username').value;
-  const password = document.getElementById('password').value;
-
-  let messages = [];
-  if (password.length <= 8) {
-    messages.push('Password must be greater than 8 characters');
-  } else if (password.length >= 20) {
-    messages.push('Password must be less than 20 characters');
-  }
-  if (messages.length > 0) {
+if (loginForm !== null ) {
+  loginForm.addEventListener('submit', (e) => {
     e.preventDefault();
-    error.innerText = messages.join(', ');
-  }
-  fetch('/login/', {
-    method: 'POST',
-    headers: {
-      'Content-Type': 'application/json'
-    },
-    body: JSON.stringify({ username, password })
-  })
-  .then(response => response.json())
-  .then(data => {
-    if (data.success) {
-      window.location.href = '/login-success/';
-    } else {
-      const errorElement = document.getElementById("error");
-      errorElement.innerText = data.message;
-      errorElement.style.display = 'block';
-    }
-  })
-  .catch(error => {
-    console.log(error);
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    fetch('/login/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ username, password })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        window.location.href = '/login-success/';
+      } else {
+        const errorElement = document.getElementById("error");
+        errorElement.innerText = data.message;
+        errorElement.style.display = 'block';
+      }
+    })
+    .catch(error => {
+      console.log(error);
+    });
   });
-});
+}
+
+if (registerForm !== null) {
+  registerForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email').value;
+    const username = document.getElementById('username').value;
+    const password = document.getElementById('password').value;
+    fetch('/register/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ email, username, password })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // TODO: redirect to successful registration
+        console.log("Successfully registered!")
+        //window.location.href = '/login-success/';
+      } else {
+        const errorElement = document.getElementById("error");
+        errorElement.innerText = data.message;
+        errorElement.style.display = 'block';
+      }
+    })
+    .catch(error => {
+      console.log(error);
+    });
+  });
+}
