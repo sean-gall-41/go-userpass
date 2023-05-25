@@ -121,11 +121,45 @@ func resetPasswordHandler(w http.ResponseWriter, r *http.Request) {
     case "GET":
       internal.RenderTemplate(w, r, "password-reset.tmpl")
     case "POST":
-      if err := r.ParseForm(); err != nil {
+      passwordResetRequest := struct {
+        Email string `json:"email"`
+      }{}
+      if err := json.NewDecoder(r.Body).Decode(&passwordResetRequest); err != nil {
+        panic(err)
+      }
+      user, err := internal.QueryUsersByEmail(passwordResetRequest.Email)
+      if err != nil {
+        fmt.Fprintf(w, "resetPasswordHandler: %v", err)
+        return
+      }
+      if err = godotenv.Load(); err != nil {
         fmt.Fprintf(w, "resetPasswordHandler: %v", err)
         return
       }
       // TODO: finish writing this method
+      email := Email {
+        From: os.Getenv("EMAIL_FROM"),
+        To: []string{user.Email},
+        Subject: "Reset Password Request",
+        Body: fmt.Sprintf(`<p>Hello Silly Little Human,</p>
+                           <p>It would appear as though you have forgotten your password.
+                              Allow me to help you, foolish child.</p>
+                           <p>Follow this link to reset it: <b>%s</b></p>`, "(INSERT LINK)"),
+      }
+      var response serverResponse
+      if err := sendEmail(&email); err != nil {
+        response = serverResponse {
+          Success: false,
+          Message: "Something went wrong when sending an email",
+        }
+        respond(w, r, &response)
+        return
+      }
+      response = serverResponse {
+        Success: true,
+        Message: "",
+      }
+      respond(w, r, &response)
     default:
       fmt.Fprintf(w, "Only GET and POST methods are supported.")
   }
