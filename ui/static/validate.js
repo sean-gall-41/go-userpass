@@ -26,7 +26,13 @@ form.addEventListener('submit', (e) => {
   })
   .then(response => response.json())
   .then(data => {
-    console.log(data)
+    if (data.success) {
+      window.location.href = '/login-success/';
+    } else {
+      const errorElement = document.getElementById("error");
+      errorElement.innerText = data.message;
+      errorElement.style.display = 'block';
+    }
   })
   .catch(error => {
     console.log(error);

@@ -41,41 +41,54 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
   }
 }
 
+type serverResponse struct {
+  Success bool `json:"success"`
+  Message string `json:"message"`
+}
+
+func respond(w http.ResponseWriter, r *http.Request, response *serverResponse) {
+  w.Header().Set("Content-Type", "application/json")
+  w.WriteHeader(http.StatusCreated)
+  json.NewEncoder(w).Encode(response)
+}
+
 func loginHandler(w http.ResponseWriter, r *http.Request) {
   switch r.Method {
     case "GET":
       internal.RenderTemplate(w, r, "login.tmpl")
     case "POST":
-      //if err := r.ParseForm(); err != nil {
-      //  fmt.Fprintf(w, "indexHandler: %v", err)
-      //  return
-      //}
-      //fmt.Printf("%s, %s\n", r.FormValue("username"), r.FormValue("password"))
-      decoder := json.NewDecoder(r.Body)
-      data := struct {
-        User *string
-        Pass *string
+      loginRequest := struct {
+        Username string `json:"username"`
+        Password string `json:"password"`
       }{}
-      err := decoder.Decode(&data)
+      err := json.NewDecoder(r.Body).Decode(&loginRequest)
       if err != nil {
         panic(err)
       }
-      fmt.Println(data.User)
-      user, err := internal.QueryUsersByUsername(r.FormValue("username"))
+      user, err := internal.QueryUsersByUsername(loginRequest.Username)
+      var response serverResponse
       if err != nil {
-        w.Header().Set("Content-Type", "application/json")
-        w.WriteHeader(http.StatusCreated)
-        json.NewEncoder(w).Encode("Invalid Username")
+        response = serverResponse {
+          Success: false,
+          Message: "Invalid Username",
+        }
+        respond(w, r, &response)
         return
       }
-      err = bcrypt.CompareHashAndPassword(user.PassHash, []byte(r.FormValue("password")))
+      err = bcrypt.CompareHashAndPassword(user.PassHash, []byte(loginRequest.Password))
       if err != nil {
-        w.Header().Set("Content-Type", "application/json")
-        w.WriteHeader(http.StatusCreated)
-        json.NewEncoder(w).Encode(fmt.Sprintf("Incorrect password for user %s", user.Username))
+        response = serverResponse {
+          Success: false,
+          Message: "Incorrect password",
+        }
+        respond(w, r, &response)
         return
       }
-      http.Redirect(w, r, "/login-success/", http.StatusFound)
+      response = serverResponse {
+        Success: true,
+        Message: "",
+      }
+      respond(w, r, &response)
     default:
       fmt.Fprintf(w, "Only GET and POST methods are supported.")
   }
