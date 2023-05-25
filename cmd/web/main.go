@@ -8,14 +8,14 @@ import(
 )
 
 func main() {
-  if _, err := internal.StartMySQL(); err != nil {
+  if err := internal.StartMySQL(); err != nil {
     log.Fatal(err)
     os.Exit(-1)
   }
 
   mux := http.NewServeMux()
   fileServer := http.FileServer(http.Dir("./ui/static/"))
-  mux.Handle("/static/", http.StripPrefix("/static", fileServer))
+  mux.Handle("/static/", http.StripPrefix("/static/", fileServer))
   mux.HandleFunc("/login/", loginHandler)
   mux.HandleFunc("/login-success/", loginSuccessHandler)
   mux.HandleFunc("/register/", registerHandler)

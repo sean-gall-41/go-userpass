@@ -18,9 +18,9 @@ type User struct {
   PassHash []byte
 }
 
-func StartMySQL() (*sql.DB, error) {
+func StartMySQL() error {
   if err := godotenv.Load(); err != nil {
-    return nil, err
+    return err
   }
   log.Print("Connecting to database...\n")
   cfg := mysql.Config {
@@ -32,15 +32,15 @@ func StartMySQL() (*sql.DB, error) {
     AllowNativePasswords: true,
   }
   var err error
-  db, err := sql.Open("mysql", cfg.FormatDSN())
+  db, err = sql.Open("mysql", cfg.FormatDSN())
   if err != nil {
-    return nil, err
+    return err
   }
   if err := db.Ping(); err != nil {
-    return nil, err
+    return err
   }
   log.Print("Connection Succesful.\n")
-  return db, nil
+  return nil
 }
 
 func QueryUsersByUsername(username string) (*User, error) {

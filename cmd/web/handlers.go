@@ -3,6 +3,7 @@ package main
 import(
   "os"
   "fmt"
+  "encoding/json"
   "golang.org/x/crypto/bcrypt"
   "net/http"
   "github.com/joho/godotenv"
@@ -45,20 +46,33 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
     case "GET":
       internal.RenderTemplate(w, r, "login.tmpl")
     case "POST":
-      if err := r.ParseForm(); err != nil {
-        fmt.Fprintf(w, "indexHandler: %v", err)
-        return
+      //if err := r.ParseForm(); err != nil {
+      //  fmt.Fprintf(w, "indexHandler: %v", err)
+      //  return
+      //}
+      //fmt.Printf("%s, %s\n", r.FormValue("username"), r.FormValue("password"))
+      decoder := json.NewDecoder(r.Body)
+      data := struct {
+        User *string
+        Pass *string
+      }{}
+      err := decoder.Decode(&data)
+      if err != nil {
+        panic(err)
       }
+      fmt.Println(data.User)
       user, err := internal.QueryUsersByUsername(r.FormValue("username"))
       if err != nil {
-        //TODO: handle by reporting error to user: unknown user
-        fmt.Fprintf(w, "indexHandler: Could not find username!")
+        w.Header().Set("Content-Type", "application/json")
+        w.WriteHeader(http.StatusCreated)
+        json.NewEncoder(w).Encode("Invalid Username")
         return
       }
       err = bcrypt.CompareHashAndPassword(user.PassHash, []byte(r.FormValue("password")))
       if err != nil {
-        //TODO: handle by reporting error to user: incorrect password for user
-        fmt.Fprintf(w, "indexHandler: Given password for user '%s' is incorrect!", user.Username)
+        w.Header().Set("Content-Type", "application/json")
+        w.WriteHeader(http.StatusCreated)
+        json.NewEncoder(w).Encode(fmt.Sprintf("Incorrect password for user %s", user.Username))
         return
       }
       http.Redirect(w, r, "/login-success/", http.StatusFound)
