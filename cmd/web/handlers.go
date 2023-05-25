@@ -136,11 +136,13 @@ func usernameForgetHandler(w http.ResponseWriter, r *http.Request) {
     case "GET":
       internal.RenderTemplate(w, r, "username-forget.tmpl")
     case "POST":
-      if err := r.ParseForm(); err != nil {
-        fmt.Fprintf(w, "usernameForgetHandler: %v", err)
-        return
+      usernameRequest := struct {
+        Email string `json:"email"`
+      }{}
+      if err := json.NewDecoder(r.Body).Decode(&usernameRequest); err != nil {
+        panic(err)
       }
-      user, err := internal.QueryUsersByEmail(r.FormValue("email"))
+      user, err := internal.QueryUsersByEmail(usernameRequest.Email)
       if err != nil {
         fmt.Fprintf(w, "usernameForgetHandler: %v", err)
         return
@@ -158,10 +160,20 @@ func usernameForgetHandler(w http.ResponseWriter, r *http.Request) {
                               Allow me to help you, foolish child.</p>
                            <p>Your username is: <b>%s</b></p>`, user.Username),
       }
+      var response serverResponse
       if err := sendEmail(&email); err != nil {
-        fmt.Fprintf(w, "usernameForgetHandler: %v", err)
+        response = serverResponse {
+          Success: false,
+          Message: "Something went wrong when sending an email",
+        }
+        respond(w, r, &response)
         return
       }
+      response = serverResponse {
+        Success: true,
+        Message: "",
+      }
+      respond(w, r, &response)
     default:
       fmt.Fprintf(w, "Only GET and POST methods are supported.")
   }

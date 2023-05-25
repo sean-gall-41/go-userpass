@@ -62,3 +62,33 @@ if (registerForm !== null) {
     });
   });
 }
+
+if (usernameForgetForm !== null) {
+  usernameForgetForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const email = document.getElementById('email').value;
+    fetch('/username-forget/', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ email })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // TODO: redirect to success screen
+        console.log("If that email exists, we'll send you a message with a link with your username.")
+        //window.location.href = '/login-success/';
+      } else {
+        const errorElement = document.getElementById("error");
+        errorElement.innerText = data.message;
+        errorElement.style.display = 'block';
+      }
+    })
+    .catch(error => {
+      console.log(error);
+    });
+  });
+}
+
