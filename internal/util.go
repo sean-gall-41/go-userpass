@@ -5,11 +5,14 @@ import (
   "strings"
   "net/http"
   "html/template"
+  "crypto/rand"
+  "math/big"
 )
+
+const tokenCharset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789"
 
 type TemplateData struct {
   Title string
-  
 }
 // /lost-password/ -> lost password
 func RenderTemplate(w http.ResponseWriter, r *http.Request, tmplName string) {
@@ -31,3 +34,17 @@ func RenderTemplate(w http.ResponseWriter, r *http.Request, tmplName string) {
     http.Error(w, err.Error(), http.StatusInternalServerError)
   }
 }
+
+func GeneratePasswordResetToken() (string, error) {
+  token := make([]byte, 64)
+  charSetLen := big.NewInt(int64(len(tokenCharset)))
+  for i := 0; i < 64; i++ {
+    randID, err := rand.Int(rand.Reader, charSetLen)
+    if err != nil {
+      return "", err
+    }
+    token[i] = tokenCharset[randID.Int64()]
+  }
+  return string(token), nil
+}
+

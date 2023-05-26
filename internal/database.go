@@ -4,9 +4,12 @@ import(
   "os"
   "log"
   "fmt"
+  "time"
   "database/sql"
+  "golang.org/x/crypto/bcrypt"
   "github.com/joho/godotenv"
   "github.com/go-sql-driver/mysql"
+  timefmt "github.com/itchyny/timefmt-go"
 )
 
 var db *sql.DB
@@ -99,5 +102,43 @@ func InsertUser(usr User) (int64, error) {
     }
     // Return the new users's ID.
     return id, nil
+}
+
+func userTokenExists(userID int64) bool {
+  row := db.QueryRow("SELECT id FROM tokens WHERE id = ? LIMIT 1", userID)
+  var id int64
+  if err := row.Scan(&id); err != nil {
+    return false
+  }
+  if id == userID {
+    return true
+  }
+  return false
+}
+
+func deleteUserToken(userID int64) error {
+  if _, err := db.Exec("DELETE FROM tokens WHERE id = ?", userID); err != nil {
+    return err
+  }
+  return nil
+}
+
+func InsertTokenIntoTokens(token string, userID int64) error {
+  if userTokenExists(userID) {
+    deleteUserToken(userID)
+  }
+  formattedTime := timefmt.Format(time.Now(), "%Y-%m-%d %H:%M:%S")
+  hashedToken, err := bcrypt.GenerateFromPassword([]byte(token), bcrypt.MinCost)
+  if err != nil {
+    return fmt.Errorf("Could not hash token")
+  }
+  if _, err := db.Exec("INSERT INTO tokens (id, token_hash, time_created) VALUES (?, ?, ?)",
+    userID,
+    hashedToken,
+    formattedTime,
+  ); err != nil {
+    return fmt.Errorf("Could not insert token into tokens")
+  }
+  return nil
 }
 

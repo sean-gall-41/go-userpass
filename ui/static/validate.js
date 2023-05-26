@@ -1,7 +1,7 @@
 const loginForm = document.getElementById('login-form');
 const registerForm = document.getElementById('register-form');
 const usernameForgetForm = document.getElementById('username-forget-form');
-const passwordResetForm = document.getElementById('password-reset-form');
+const passwordResetRequestForm = document.getElementById('password-reset-request-form');
 const error = document.getElementById('error');
 
 if (loginForm !== null ) {
@@ -92,11 +92,11 @@ if (usernameForgetForm !== null) {
   });
 }
 
-if (passwordResetForm !== null) {
-  passwordResetForm.addEventListener('submit', (e) => {
+if (passwordResetRequestForm !== null) {
+  passwordResetRequestForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const email = document.getElementById('email').value;
-    fetch('/password-reset/', {
+    fetch('/password-reset-request/', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

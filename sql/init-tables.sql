@@ -7,3 +7,11 @@ CREATE TABLE users (
   PRIMARY KEY (id)
 );
 
+DROP TABLE IF EXISTS tokens;
+CREATE TABLE tokens (
+  id INT NOT NULL,
+  token_hash BINARY(64) NOT NULL,
+  time_created DATETIME NOT NULL,
+  PRIMARY KEY (id),
+  FOREIGN KEY (id) REFERENCES users(id)
+);

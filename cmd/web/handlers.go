@@ -116,10 +116,10 @@ func loginSuccessHandler(w http.ResponseWriter, r *http.Request) {
   fmt.Fprintf(w, "Only GET method is supported for handler loginSuccessHandler.")
 }
 
-func resetPasswordHandler(w http.ResponseWriter, r *http.Request) {
+func requestResetPasswordHandler(w http.ResponseWriter, r *http.Request) {
   switch r.Method {
     case "GET":
-      internal.RenderTemplate(w, r, "password-reset.tmpl")
+      internal.RenderTemplate(w, r, "request-password-reset.tmpl")
     case "POST":
       passwordResetRequest := struct {
         Email string `json:"email"`
@@ -129,14 +129,46 @@ func resetPasswordHandler(w http.ResponseWriter, r *http.Request) {
       }
       user, err := internal.QueryUsersByEmail(passwordResetRequest.Email)
       if err != nil {
-        fmt.Fprintf(w, "resetPasswordHandler: %v", err)
+        response := serverResponse {
+          Success: false,
+          Message: "Internal database error.",
+        }
+        respond(w, r, &response)
         return
       }
       if err = godotenv.Load(); err != nil {
-        fmt.Fprintf(w, "resetPasswordHandler: %v", err)
+        response := serverResponse {
+          Success: false,
+          Message: "Failure loading environment.",
+        }
+        respond(w, r, &response)
         return
       }
-      // TODO: finish writing this method
+      // generate the token, insert into db, return the hashed token
+      // to send as part of URL to user
+      token, err := internal.GeneratePasswordResetToken()
+      if err != nil {
+        response := serverResponse {
+          Success: false,
+          Message: "Error generating token.",
+        }
+        respond(w, r, &response)
+        return
+      }
+      if err := internal.InsertTokenIntoTokens(
+        token,
+        user.ID,
+      ); err != nil {
+        response := serverResponse {
+          Success: false,
+          Message: "Error inserting token into db.",
+        }
+        respond(w, r, &response)
+        return
+      }
+      // TODO: create a route to handle this page
+      passwordResetURL := fmt.Sprintf("/reset-password?token=%v", token)
+
       email := Email {
         From: os.Getenv("EMAIL_FROM"),
         To: []string{user.Email},
@@ -144,7 +176,10 @@ func resetPasswordHandler(w http.ResponseWriter, r *http.Request) {
         Body: fmt.Sprintf(`<p>Hello Silly Little Human,</p>
                            <p>It would appear as though you have forgotten your password.
                               Allow me to help you, foolish child.</p>
-                           <p>Follow this link to reset it: <b>%s</b></p>`, "(INSERT LINK)"),
+                           <p>Follow this link to reset it: <a href="%s">%s</a></p>`,
+                           passwordResetURL,
+                           "Reset Password",
+        ),
       }
       var response serverResponse
       if err := sendEmail(&email); err != nil {
@@ -162,6 +197,20 @@ func resetPasswordHandler(w http.ResponseWriter, r *http.Request) {
       respond(w, r, &response)
     default:
       fmt.Fprintf(w, "Only GET and POST methods are supported.")
+  }
+}
+
+func resetPasswordHandler(w http.ResponseWriter, r *http.Request) {
+  switch r.Method {
+    case "GET":
+      token := r.URL.Query().Get("token")
+      // TODO: validate token, if valid, render template else respond with error
+      internal.RenderTemplate(w, r, "reset-password.tmpl")
+    case "POST":
+      // TODO: get the id from this user by querying tokens table for id
+      // then use user id to replace user password with the one given
+      // down the road, re-route to a success page, then redirect to login
+      fmt.Printf("idk bruh I just got here\n")
   }
 }
 
