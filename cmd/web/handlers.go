@@ -204,8 +204,12 @@ func resetPasswordHandler(w http.ResponseWriter, r *http.Request) {
   switch r.Method {
     case "GET":
       token := r.URL.Query().Get("token")
-      // TODO: validate token, if valid, render template else respond with error
-      internal.RenderTemplate(w, r, "reset-password.tmpl")
+      validToken := internal.ValidateToken(token)
+      if validToken {
+        internal.RenderTemplate(w, r, "reset-password.tmpl")
+        return
+      }
+      // do a redirect
     case "POST":
       // TODO: get the id from this user by querying tokens table for id
       // then use user id to replace user password with the one given

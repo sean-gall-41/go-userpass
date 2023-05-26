@@ -21,6 +21,12 @@ type User struct {
   PassHash []byte
 }
 
+type Token struct {
+  ID int64
+  TokenHash []byte
+  TimeCreated string
+}
+
 func StartMySQL() error {
   if err := godotenv.Load(); err != nil {
     return err
@@ -123,19 +129,47 @@ func deleteUserToken(userID int64) error {
   return nil
 }
 
+func ValidateToken(token string) bool {
+  rows, err := db.Query("SELECT * FROM tokens")
+  if err != nil {
+    return false
+  }
+  defer rows.Close()
+  var dbToken Token
+  for rows.Next() {
+    if err := rows.Scan(&dbToken.ID, &dbToken.TokenHash, &dbToken.TimeCreated); err != nil {
+      return false
+    }
+    if err := bcrypt.CompareHashAndPassword(dbToken.TokenHash, []byte(token)); err == nil {
+      parsedCreateDate, err := timefmt.Parse(dbToken.TimeCreated, "%Y-%m-%d %H:%M:%S")
+      if err != nil {
+        return false
+      }
+      // lil hacky way of getting the current time zone when LoadLocation("") fails
+      _, timeZoneOffset := time.Now().Zone()
+      location := time.FixedZone("current-time-zone", timeZoneOffset)
+      parsedCreateDate = parsedCreateDate.In(location)
+      expirationTime := parsedCreateDate.Add(time.Hour)
+      if time.Now().After(expirationTime) {
+        return false
+      }
+      return true
+    }
+  }
+  return false
+}
+
 func InsertTokenIntoTokens(token string, userID int64) error {
   if userTokenExists(userID) {
     deleteUserToken(userID)
   }
-  formattedTime := timefmt.Format(time.Now(), "%Y-%m-%d %H:%M:%S")
   hashedToken, err := bcrypt.GenerateFromPassword([]byte(token), bcrypt.MinCost)
   if err != nil {
     return fmt.Errorf("Could not hash token")
   }
-  if _, err := db.Exec("INSERT INTO tokens (id, token_hash, time_created) VALUES (?, ?, ?)",
+  if _, err := db.Exec("INSERT INTO tokens (id, token_hash, time_created) VALUES (?, ?, UTC_TIMESTAMP())",
     userID,
     hashedToken,
-    formattedTime,
   ); err != nil {
     return fmt.Errorf("Could not insert token into tokens")
   }

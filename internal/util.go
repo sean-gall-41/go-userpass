@@ -1,6 +1,7 @@
 package internal
 
 import (
+  "fmt"
   "log"
   "strings"
   "net/http"
@@ -48,3 +49,10 @@ func GeneratePasswordResetToken() (string, error) {
   return string(token), nil
 }
 
+func FormatTimeZone(offset int) string {
+  hours := offset / 3600
+  minutes := (offset % 3600) / 60
+
+  timeZone := fmt.Sprintf("%+03d:%02d", hours, minutes)
+  return timeZone
+}
