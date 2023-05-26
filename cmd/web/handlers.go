@@ -201,20 +201,52 @@ func requestResetPasswordHandler(w http.ResponseWriter, r *http.Request) {
 }
 
 func resetPasswordHandler(w http.ResponseWriter, r *http.Request) {
+  var response serverResponse
+  token := r.URL.Query().Get("token")
+  validToken := internal.ValidateToken(token)
+  if !validToken {
+    response = serverResponse {
+      Success: false,
+      Message: "invalid token. Maybe it's expired?",
+    }
+    respond(w, r, &response)
+    return
+  }
   switch r.Method {
     case "GET":
-      token := r.URL.Query().Get("token")
-      validToken := internal.ValidateToken(token)
-      if validToken {
-        internal.RenderTemplate(w, r, "reset-password.tmpl")
+      internal.RenderTemplate(w, r, "reset-password.tmpl")
+      //TODO: down the road do a redirect
+    case "POST":
+      passwordResetRequest := struct {
+        Password string `json:"password"`
+      }{}
+      if err := json.NewDecoder(r.Body).Decode(&passwordResetRequest); err != nil {
+        panic(err)
+      }
+      userID, err := internal.GetUserIDfromToken(token)
+      if err != nil {
+        response = serverResponse {
+          Success: false,
+          Message: err.Error(),
+        }
+        respond(w, r, &response)
         return
       }
-      // do a redirect
-    case "POST":
-      // TODO: get the id from this user by querying tokens table for id
-      // then use user id to replace user password with the one given
-      // down the road, re-route to a success page, then redirect to login
-      fmt.Printf("idk bruh I just got here\n")
+      if err := internal.UpdateUserPassword(userID, passwordResetRequest.Password); err != nil {
+        response = serverResponse {
+          Success: false,
+          Message: err.Error(),
+        }
+        respond(w, r, &response)
+        return
+      }
+      response = serverResponse {
+        Success: true,
+        Message: "Successfully updated password",
+      }
+      respond(w, r, &response)
+      return
+      //TODO: down the road, re-route to a success page, then redirect to login
   }
 }
 

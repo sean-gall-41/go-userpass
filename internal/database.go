@@ -52,6 +52,20 @@ func StartMySQL() error {
   return nil
 }
 
+func UpdateUserPassword(userID int64, password string) error {
+  hash, err := bcrypt.GenerateFromPassword([]byte(password), bcrypt.MinCost)
+  if err != nil {
+    return err
+  }
+  if _, err := db.Exec("UPDATE users SET password_hash = ? WHERE id = ?",
+    hash,
+    userID,
+  ); err != nil {
+    return err
+  }
+  return nil
+}
+
 func QueryUsersByUsername(username string) (*User, error) {
   var user User
   row := db.QueryRow(
@@ -176,3 +190,19 @@ func InsertTokenIntoTokens(token string, userID int64) error {
   return nil
 }
 
+func GetUserIDfromToken(token string) (int64, error) {
+  rows, err := db.Query("SELECT * FROM tokens")
+  if err != nil {
+    return -1, err
+  }
+  defer rows.Close()
+  var dbToken Token
+  for rows.Next() {
+    if err := rows.Scan(&dbToken.ID, &dbToken.TokenHash, &dbToken.TimeCreated); err != nil {
+      return -1, err
+    } else {
+      return dbToken.ID, nil
+    }
+  }
+  return -1, fmt.Errorf("Could not find token in db")
+}

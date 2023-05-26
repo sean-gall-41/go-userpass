@@ -2,6 +2,7 @@ const loginForm = document.getElementById('login-form');
 const registerForm = document.getElementById('register-form');
 const usernameForgetForm = document.getElementById('username-forget-form');
 const passwordResetRequestForm = document.getElementById('password-reset-request-form');
+const passwordResetForm = document.getElementById('password-reset-form');
 const error = document.getElementById('error');
 
 if (loginForm !== null ) {
@@ -108,6 +109,36 @@ if (passwordResetRequestForm !== null) {
       if (data.success) {
         // TODO: redirect to success screen
         console.log("If that email exists, we'll send you a message with a link to reset your password.")
+        //window.location.href = '/login-success/';
+      } else {
+        const errorElement = document.getElementById("error");
+        errorElement.innerText = data.message;
+        errorElement.style.display = 'block';
+      }
+    })
+    .catch(error => {
+      console.log(error);
+    });
+  });
+}
+
+if (passwordResetForm !== null) {
+  passwordResetForm.addEventListener('submit', (e) => {
+    e.preventDefault();
+    const password = document.getElementById('password').value;
+    // TODO: handle password-verify not being equal to password
+    fetch(window.location.href, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ password })
+    })
+    .then(response => response.json())
+    .then(data => {
+      if (data.success) {
+        // TODO: redirect to success screen
+        console.log("Successfully reset password.")
         //window.location.href = '/login-success/';
       } else {
         const errorElement = document.getElementById("error");
