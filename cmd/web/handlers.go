@@ -110,7 +110,12 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 
 func loginSuccessHandler(w http.ResponseWriter, r *http.Request) {
   if r.Method == "GET" {
-      internal.RenderTemplate(w, r, "login-success.tmpl", "", "")
+      internal.RenderTemplate(
+        w,
+        r,
+        "success.tmpl",
+        "Success!",
+        "You have successfully logged in!")
       return
   }
   fmt.Fprintf(w, "Only GET method is supported for handler loginSuccessHandler.")
