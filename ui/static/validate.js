@@ -131,9 +131,7 @@ if (passwordResetForm !== null) {
     .then(response => response.json())
     .then(data => {
       if (data.success) {
-        // TODO: redirect to success screen
-        console.log("Successfully reset password.")
-        //window.location.href = '/login-success/';
+        window.location.href = '/reset-password-success/';
       } else {
         const errorElement = document.getElementById("error");
         errorElement.innerText = data.message;

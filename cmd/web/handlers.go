@@ -231,7 +231,6 @@ func requestResetPasswordSuccessHandler(w http.ResponseWriter, r *http.Request) 
   } else {
     fmt.Fprintf(w, "Only GET method is supported for this route.")
   }
-
 }
 
 func resetPasswordHandler(w http.ResponseWriter, r *http.Request) {
@@ -276,13 +275,27 @@ func resetPasswordHandler(w http.ResponseWriter, r *http.Request) {
       }
       response = serverResponse {
         Success: true,
-        Message: "Successfully updated password",
+        Message: "",
       }
       respond(w, r, &response)
       return
-      //TODO: down the road, re-route to a success page, then redirect to login
   }
 }
+
+func resetPasswordSuccessHandler(w http.ResponseWriter, r *http.Request) {
+  if r.Method == "GET" {
+    // TODO: add extra param with template data
+    internal.RenderTemplate(
+      w,
+      r,
+      "success.tmpl",
+      "Password Reset Confirmation",
+      "You have successfully reset your password! You can now login with your new password.")
+  } else {
+    fmt.Fprintf(w, "Only GET method is supported for this route.")
+  }
+}
+
 
 func usernameForgetHandler(w http.ResponseWriter, r *http.Request) {
   switch r.Method {

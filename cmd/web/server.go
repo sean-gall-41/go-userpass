@@ -16,6 +16,7 @@ func startServer() error {
   mux.HandleFunc("/password-reset-request/", requestResetPasswordHandler)
   mux.HandleFunc("/password-reset-request-success/", requestResetPasswordSuccessHandler)
   mux.HandleFunc("/reset-password/", resetPasswordHandler)
+  mux.HandleFunc("/reset-password-success/", resetPasswordSuccessHandler)
   mux.HandleFunc("/username-forget/", usernameForgetHandler)
   mux.HandleFunc("/username-forget-success/", usernameForgetSuccessHandler)
   log.Printf("Listening on port 8080..\n")
