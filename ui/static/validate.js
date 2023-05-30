@@ -78,9 +78,7 @@ if (usernameForgetForm !== null) {
     .then(response => response.json())
     .then(data => {
       if (data.success) {
-        // TODO: redirect to success screen
-        console.log("If that email exists, we'll send you a message with your username.")
-        //window.location.href = '/login-success/';
+        window.location.href = '/username-forget-success/';
       } else {
         const errorElement = document.getElementById("error");
         errorElement.innerText = data.message;

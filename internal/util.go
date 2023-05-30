@@ -14,12 +14,14 @@ const tokenCharset = "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ012345
 
 type TemplateData struct {
   Title string
+  Header string
+  Message string
 }
 // /lost-password/ -> lost password
-func RenderTemplate(w http.ResponseWriter, r *http.Request, tmplName string) {
+func RenderTemplate(w http.ResponseWriter, r *http.Request, tmplName string, header string, message string) {
   title := strings.Replace(tmplName, ".tmpl", "", -1)
   title = strings.Replace(title, "-", " ", -1)
-  tmplData := TemplateData { Title: title }
+  tmplData := TemplateData { Title: title, Header: header, Message: message}
   files := [] string {
     "./ui/templates/html-base.tmpl",
     "./ui/templates/styles-base.tmpl",

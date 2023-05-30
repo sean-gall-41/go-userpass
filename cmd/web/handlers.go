@@ -24,7 +24,7 @@ func respond(w http.ResponseWriter, r *http.Request, response *serverResponse) {
 func registerHandler(w http.ResponseWriter, r *http.Request) {
   switch r.Method {
     case "GET":
-      internal.RenderTemplate(w, r, "register.tmpl")
+      internal.RenderTemplate(w, r, "register.tmpl", "", "")
     case "POST":
       registerRequest := struct {
         Email string `json:"email"`
@@ -69,7 +69,7 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
 func loginHandler(w http.ResponseWriter, r *http.Request) {
   switch r.Method {
     case "GET":
-      internal.RenderTemplate(w, r, "login.tmpl")
+      internal.RenderTemplate(w, r, "login.tmpl", "", "")
     case "POST":
       loginRequest := struct {
         Username string `json:"username"`
@@ -110,7 +110,7 @@ func loginHandler(w http.ResponseWriter, r *http.Request) {
 
 func loginSuccessHandler(w http.ResponseWriter, r *http.Request) {
   if r.Method == "GET" {
-      internal.RenderTemplate(w, r, "login-success.tmpl")
+      internal.RenderTemplate(w, r, "login-success.tmpl", "", "")
       return
   }
   fmt.Fprintf(w, "Only GET method is supported for handler loginSuccessHandler.")
@@ -119,7 +119,7 @@ func loginSuccessHandler(w http.ResponseWriter, r *http.Request) {
 func requestResetPasswordHandler(w http.ResponseWriter, r *http.Request) {
   switch r.Method {
     case "GET":
-      internal.RenderTemplate(w, r, "request-password-reset.tmpl")
+      internal.RenderTemplate(w, r, "request-password-reset.tmpl", "", "")
     case "POST":
       passwordResetRequest := struct {
         Email string `json:"email"`
@@ -214,7 +214,7 @@ func resetPasswordHandler(w http.ResponseWriter, r *http.Request) {
   }
   switch r.Method {
     case "GET":
-      internal.RenderTemplate(w, r, "reset-password.tmpl")
+      internal.RenderTemplate(w, r, "reset-password.tmpl", "", "")
       //TODO: down the road do a redirect
     case "POST":
       passwordResetRequest := struct {
@@ -253,7 +253,7 @@ func resetPasswordHandler(w http.ResponseWriter, r *http.Request) {
 func usernameForgetHandler(w http.ResponseWriter, r *http.Request) {
   switch r.Method {
     case "GET":
-      internal.RenderTemplate(w, r, "username-forget.tmpl")
+      internal.RenderTemplate(w, r, "username-forget.tmpl", "", "")
     case "POST":
       usernameRequest := struct {
         Email string `json:"email"`
@@ -298,3 +298,16 @@ func usernameForgetHandler(w http.ResponseWriter, r *http.Request) {
   }
 }
 
+func usernameForgetSuccessHandler(w http.ResponseWriter, r *http.Request) {
+  if r.Method == "GET" {
+    // TODO: add extra param with template data
+    internal.RenderTemplate(
+      w,
+      r,
+      "success.tmpl",
+      "Email Sent Confirmation",
+      "If the email you gave exists, you will receive an email with your username.")
+  } else {
+    fmt.Fprintf(w, "Only GET method is supported for this route.")
+  }
+}
