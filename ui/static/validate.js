@@ -49,9 +49,7 @@ if (registerForm !== null) {
     .then(response => response.json())
     .then(data => {
       if (data.success) {
-        // TODO: redirect to successful registration
-        console.log("Successfully registered!")
-        //window.location.href = '/login-success/';
+        window.location.href = '/register-success/';
       } else {
         const errorElement = document.getElementById("error");
         errorElement.innerText = data.message;

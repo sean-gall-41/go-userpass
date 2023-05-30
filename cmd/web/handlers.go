@@ -66,6 +66,20 @@ func registerHandler(w http.ResponseWriter, r *http.Request) {
   }
 }
 
+func registerSuccessHandler(w http.ResponseWriter, r *http.Request) {
+  if r.Method == "GET" {
+      internal.RenderTemplate(
+        w,
+        r,
+        "success.tmpl",
+        "Registration Confirmation",
+        "You have successfully created a user account! You may now login in to your account.")
+      return
+  }
+  fmt.Fprintf(w, "Only GET method is supported for handler loginSuccessHandler.")
+}
+
+
 func loginHandler(w http.ResponseWriter, r *http.Request) {
   switch r.Method {
     case "GET":
