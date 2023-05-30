@@ -14,6 +14,7 @@ func startServer() error {
   mux.HandleFunc("/register/", registerHandler)
   mux.HandleFunc("/register-success/", registerSuccessHandler)
   mux.HandleFunc("/password-reset-request/", requestResetPasswordHandler)
+  mux.HandleFunc("/password-reset-request-success/", requestResetPasswordSuccessHandler)
   mux.HandleFunc("/reset-password/", resetPasswordHandler)
   mux.HandleFunc("/username-forget/", usernameForgetHandler)
   mux.HandleFunc("/username-forget-success/", usernameForgetSuccessHandler)

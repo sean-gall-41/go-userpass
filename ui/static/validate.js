@@ -103,9 +103,7 @@ if (passwordResetRequestForm !== null) {
     .then(response => response.json())
     .then(data => {
       if (data.success) {
-        // TODO: redirect to success screen
-        console.log("If that email exists, we'll send you a message with a link to reset your password.")
-        //window.location.href = '/login-success/';
+        window.location.href = '/password-reset-request-success/';
       } else {
         const errorElement = document.getElementById("error");
         errorElement.innerText = data.message;

@@ -219,6 +219,21 @@ func requestResetPasswordHandler(w http.ResponseWriter, r *http.Request) {
   }
 }
 
+func requestResetPasswordSuccessHandler(w http.ResponseWriter, r *http.Request) {
+  if r.Method == "GET" {
+    // TODO: add extra param with template data
+    internal.RenderTemplate(
+      w,
+      r,
+      "success.tmpl",
+      "Email Sent Confirmation",
+      "If the email you gave exists, you will receive an email with a link to reset your password.")
+  } else {
+    fmt.Fprintf(w, "Only GET method is supported for this route.")
+  }
+
+}
+
 func resetPasswordHandler(w http.ResponseWriter, r *http.Request) {
   var response serverResponse
   token := r.URL.Query().Get("token")
