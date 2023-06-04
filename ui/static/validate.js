@@ -46,6 +46,7 @@ if (registerForm !== null) {
   const password = document.getElementById('password');
   const checks = document.querySelectorAll(".password-reqs li");
 
+  // update password requirements based on user input
   password.addEventListener('input', (e) => {
     let inputValue = e.target.value;
     for (let i = 0; i < passReqs.length; i++) {
@@ -57,11 +58,27 @@ if (registerForm !== null) {
     }
   });
 
+  // clear the error message on focus, if it isn't cleared already
+  password.addEventListener('focus', (e) => {
+    const errorElement = document.getElementById("error");
+    errorElement.innerText = '';
+    errorElement.style.display = 'none';
+  })
+
+  // fetch data from the server after ensuring all password reqs are met
   registerForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const email = document.getElementById('email').value;
     const username = document.getElementById('username').value;
     const password = document.getElementById('password').value;
+    const errorElement = document.getElementById("error");
+    const passChecks = document.querySelectorAll(".password-reqs li");
+    const allPassReqsMet = Array.from(passChecks).every(check => check.classList.contains("valid"));
+    if (!allPassReqsMet) {
+      errorElement.innerText = "Not all password requirements met!";
+      errorElement.style.display = 'block';
+      return;
+    }
     fetch('/register/', {
       method: 'POST',
       headers: {
@@ -74,7 +91,6 @@ if (registerForm !== null) {
       if (data.success) {
         window.location.href = '/register-success/';
       } else {
-        const errorElement = document.getElementById("error");
         errorElement.innerText = data.message;
         errorElement.style.display = 'block';
       }
