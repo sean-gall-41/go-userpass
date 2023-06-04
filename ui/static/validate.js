@@ -5,6 +5,15 @@ const passwordResetRequestForm = document.getElementById('password-reset-request
 const passwordResetForm = document.getElementById('password-reset-form');
 const error = document.getElementById('error');
 
+const passReqs = [
+  /[a-zA-Z]/,         // An alphabetic character
+  /[a-z]/,            // A lowercase character
+  /[A-Z]/,            // An uppercase character
+  /\d/,               // A numeric character
+  /.{8,}/,            // A minimum of 8 characters
+  /[!@#$%^&*()_]/      // A special character
+];
+
 if (loginForm !== null ) {
   loginForm.addEventListener('submit', (e) => {
     e.preventDefault();
@@ -34,6 +43,20 @@ if (loginForm !== null ) {
 }
 
 if (registerForm !== null) {
+  const password = document.getElementById('password');
+  const checks = document.querySelectorAll(".password-reqs li");
+
+  password.addEventListener('input', (e) => {
+    let inputValue = e.target.value;
+    for (let i = 0; i < passReqs.length; i++) {
+      if (passReqs[i].test(inputValue)) {
+        checks[i].classList.add("valid");
+      } else {
+        checks[i].classList.remove("valid");
+      }
+    }
+  });
+
   registerForm.addEventListener('submit', (e) => {
     e.preventDefault();
     const email = document.getElementById('email').value;

@@ -185,7 +185,6 @@ func requestResetPasswordHandler(w http.ResponseWriter, r *http.Request) {
         respond(w, r, &response)
         return
       }
-      // TODO: create a route to handle this page
       passwordResetURL := fmt.Sprintf("/reset-password?token=%v", token)
 
       email := Email {
@@ -221,7 +220,6 @@ func requestResetPasswordHandler(w http.ResponseWriter, r *http.Request) {
 
 func requestResetPasswordSuccessHandler(w http.ResponseWriter, r *http.Request) {
   if r.Method == "GET" {
-    // TODO: add extra param with template data
     internal.RenderTemplate(
       w,
       r,
@@ -248,7 +246,6 @@ func resetPasswordHandler(w http.ResponseWriter, r *http.Request) {
   switch r.Method {
     case "GET":
       internal.RenderTemplate(w, r, "reset-password.tmpl", "", "")
-      //TODO: down the road do a redirect
     case "POST":
       passwordResetRequest := struct {
         Password string `json:"password"`
@@ -284,7 +281,6 @@ func resetPasswordHandler(w http.ResponseWriter, r *http.Request) {
 
 func resetPasswordSuccessHandler(w http.ResponseWriter, r *http.Request) {
   if r.Method == "GET" {
-    // TODO: add extra param with template data
     internal.RenderTemplate(
       w,
       r,
@@ -347,7 +343,6 @@ func usernameForgetHandler(w http.ResponseWriter, r *http.Request) {
 
 func usernameForgetSuccessHandler(w http.ResponseWriter, r *http.Request) {
   if r.Method == "GET" {
-    // TODO: add extra param with template data
     internal.RenderTemplate(
       w,
       r,
